@@ -53,42 +53,90 @@ impl App {
             line(BLACK,1.0,[0.0,h13,w,h13],transform,gl);
             line(BLACK,1.0,[0.0,h23,w,h23],transform,gl);
 
-            let transform2 = c
-                .transform
-                .trans(-25.0, -25.0);
-
             for i in 0..board.len() {
                 let value = board[i];
                 let position = pos[i];
                 if value == 1 {
                     let square = rectangle::square(position[0], position[1], 50.0);
-                    rectangle(BLACK, square, transform2, gl);
+                    rectangle(BLACK, square, c.transform.trans(-25.0,-25.0), gl);
                 }
                 else if value == 2 {
-                    let circle = ellipse::circle(position[0], position[1], 50.0);
-                    ellipse(BLACK, circle, transform2, gl);
+                    let circle = ellipse::circle(position[0], position[1], 25.0);
+                    ellipse(BLACK, circle, c.transform , gl);
                 }
             }
         });
     }
 
-    fn update(&mut self, args: &UpdateArgs) {
+    fn clicked(&mut self, pos : &[f64; 2]) {
+        if self.is_end() {
+            self.restart();
+        }
+        else{
+            let pos_number = self.get_pos(*pos);
+            if self.board[pos_number] == 0 {
+                match self.player {
+                    true => self.board[pos_number] = 1,
+                    false => self.board[pos_number] = 2
+                }
+            }
+            self.player = !self.player
+        }
     }
 
-    fn clicked(&mut self, pos : &[f64; 2]) {
-        println!("Player {} {:?}",self.player,pos);
-        let pos_number = self.get_pos(*pos);
-        if self.board[pos_number] == 0 {
-            match self.player {
-                true => self.board[pos_number] = 1,
-                false => self.board[pos_number] = 2
+    fn is_end(&mut self) -> bool{
+        let mut total = 0;
+        for i in 0..self.board.len(){
+            if self.board[i]>0 {
+                total = total + 1
             }
         }
-        self.player = !self.player
+        if total > 8 {
+            true
+        }
+        else{
+            false
+        }
+    }
+
+    fn restart(&mut self){
+        self.board = [0,0,0,0,0,0,0,0,0]
     }
     
     fn get_pos(&self, pos : [f64;2]) -> usize {
-        0
+        if pos[0]<66.6 {
+            if pos[1] < 66.6 {
+                0
+            }
+            else if pos[1] < 133.3 {
+                3
+            }
+            else{
+                6
+            }
+        }
+        else if pos[0]< 133.3 {
+            if pos[1]< 66.6 {
+                1
+            }
+            else if pos[1]< 133.3 {
+                4
+            }
+            else{
+                7
+            }
+        }
+        else{
+            if pos[1] < 66.6 {
+                2
+            }
+            else if pos[1] < 133.3 {
+                5
+            }
+            else{
+                8
+            }
+        }
     }
 }
 
@@ -101,6 +149,7 @@ fn main() {
     let mut window: Window = WindowSettings::new("tic-tac-toe", [200, 200])
         .graphics_api(opengl)
         .exit_on_esc(true)
+        .resizable(false)
         .build()
         .unwrap();
 
@@ -108,17 +157,13 @@ fn main() {
     let mut app = App {
         gl: GlGraphics::new(opengl),
         board : [0,0,0,0,0,0,0,0,0],
-        player : true
+        player : false
     };
 
     let mut events = Events::new(EventSettings::new());
     while let Some(e) = events.next(&mut window) {
         if let Some(args) = e.render_args() {
             app.render(&args);
-        }
-
-        if let Some(args) = e.update_args() {
-            app.update(&args);
         }
         e.mouse_cursor(|pos| {
             cursor = pos;
