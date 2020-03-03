@@ -22,6 +22,7 @@ impl App {
 
         const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
         const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
+        
 
         let (w, h) = (args.window_size[0], args.window_size[1]);
         let (w13, w23) = (w / 3.0, 2.0 * w / 3.0);
@@ -29,14 +30,14 @@ impl App {
 
         let pos : [[f64;2];9] = [
             [w /6.0, h /6.0 ],
-            [w /6.0, h /6.0 ],
-            [w /6.0, h /6.0 ],
-            [w /6.0, h /6.0 ],
-            [w /6.0, h /6.0 ],
-            [w /6.0, h /6.0 ],
-            [w /6.0, h /6.0 ],
-            [w /6.0, h /6.0 ],
-            [w /6.0, h /6.0 ]
+            [3.0 * w /6.0, h /6.0 ],
+            [5.0 * w /6.0, h /6.0 ],
+            [w /6.0, 3.0 * h /6.0 ],
+            [3.0 * w /6.0, 3.0 * h /6.0 ],
+            [5.0 * w /6.0, 3.0 * h /6.0 ],
+            [w /6.0, 5.0 * h /6.0 ],
+            [3.0 * w /6.0, 5.0 * h /6.0 ],
+            [5.0 * w /6.0, 5.0 * h /6.0 ]
         ];
 
         let board = self.board.clone();
@@ -52,8 +53,21 @@ impl App {
             line(BLACK,1.0,[0.0,h13,w,h13],transform,gl);
             line(BLACK,1.0,[0.0,h23,w,h23],transform,gl);
 
+            let transform2 = c
+                .transform
+                .trans(-25.0, -25.0);
+
             for i in 0..board.len() {
-                Self::draw_board(pos[i],board[i]);
+                let value = board[i];
+                let position = pos[i];
+                if value == 1 {
+                    let square = rectangle::square(position[0], position[1], 50.0);
+                    rectangle(BLACK, square, transform2, gl);
+                }
+                else if value == 2 {
+                    let circle = ellipse::circle(position[0], position[1], 50.0);
+                    ellipse(BLACK, circle, transform2, gl);
+                }
             }
         });
     }
@@ -62,7 +76,7 @@ impl App {
     }
 
     fn clicked(&mut self, pos : &[f64; 2]) {
-        println!("{:?}",pos);
+        println!("Player {} {:?}",self.player,pos);
         let pos_number = self.get_pos(*pos);
         if self.board[pos_number] == 0 {
             match self.player {
@@ -71,15 +85,6 @@ impl App {
             }
         }
         self.player = !self.player
-    }
-
-    fn draw_board(pos : [f64; 2], value : u8) {
-        if value == 1 {
-            println!("Value 1");
-        }
-        else if value == 2 {
-            println!("Value 2");
-        }
     }
     
     fn get_pos(&self, pos : [f64;2]) -> usize {
@@ -103,7 +108,7 @@ fn main() {
     let mut app = App {
         gl: GlGraphics::new(opengl),
         board : [0,0,0,0,0,0,0,0,0],
-        player : false
+        player : true
     };
 
     let mut events = Events::new(EventSettings::new());
